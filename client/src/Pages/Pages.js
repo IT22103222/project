@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { Route, Routes } from "react-router";
 import Wishlist from "./Wishlist/Wishlist";
 import Header from "../Components/Header";
+import Footer from "../Components/Footer";
 
 export default function Pages() {
   return (
@@ -12,6 +13,7 @@ export default function Pages() {
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/" element={<div>demo</div>} />
       </Routes>
+      <Footer />
     </>
   );
 }
