@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router";
 import Wishlist from "./Wishlist/Wishlist";
 import Header from "../Components/Header";
 import Footer from "../Components/Footer";
+import Orders from "./Orders/Orders";
 
 export default function Pages() {
   return (
@@ -11,6 +12,7 @@ export default function Pages() {
       <Header />
       <Routes>
         <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/orders" element={<Orders />} />
         <Route path="/" element={<div>demo</div>} />
       </Routes>
       <Footer />
