@@ -10,6 +10,8 @@ app.use(express.json());
 app.use(BodyParser.json());
 app.use(cors());
 
+const UserRouter = require("./Routes/UserRoute");
+
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -19,6 +21,8 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   next();
 });
+
+app.use("/api/v1/users", UserRouter);
 
 //start server
 db.initDb((err, db) => {
