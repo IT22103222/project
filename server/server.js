@@ -11,6 +11,7 @@ app.use(BodyParser.json());
 app.use(cors());
 
 const UserRouter = require("./Routes/UserRoute");
+const ProductRoute = require("./Routes/ProductRoute");
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -22,6 +23,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/api/v1/products", ProductRoute);
 app.use("/api/v1/users", UserRouter);
 
 //start server
