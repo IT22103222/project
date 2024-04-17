@@ -85,7 +85,7 @@ export default function Header() {
       <div className="w-3/4 flex flex-row items-center justify-start m-auto my-2">
         {pages.map((item, index) => {
           return (
-            <div className="text-[14px] font-semibold mr-3 hover:text-[#C66665]">
+            <div key={index} className="text-[14px] font-semibold mr-3 hover:text-[#C66665]">
               <a href={`/${item.split(" ").join("_").toLowerCase()}`}>{item}</a>
             </div>
           );

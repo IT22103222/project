@@ -102,6 +102,23 @@ exports.removeFromWishlist = (req, res) => {
     });
 };
 
+//get wishlist
+exports.getWishlist = (req, res) => {
+  const { _id } = req.params;
+
+  UserModel.findById({ _id })
+    .populate({
+      path: "wishList",
+      select: "name description price image offer isAvailable offer",
+    })
+    .then((res1) => {
+      res.status(200).json([...res1.wishList]);
+    })
+    .catch((er) => {
+      res.status(400).json({ msg: er });
+    });
+};
+
 //add to cart
 exports.addToCart = (req, res) => {
   let { productID, quantity } = req.body;

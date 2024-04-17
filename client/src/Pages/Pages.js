@@ -13,7 +13,7 @@ export default function Pages() {
       <Routes>
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/orders" element={<Orders />} />
-        <Route path="/" element={<div>demo</div>} />
+        <Route path="/" element={<Navigate to={"/wishlist"} />} />
       </Routes>
       <Footer />
     </>

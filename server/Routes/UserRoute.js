@@ -13,7 +13,8 @@ router.route("/").post(UserCtrl.Register);
 router
   .route("/wishlist/:_id")
   .post(UserCtrl.addToWishlist)
-  .put(UserCtrl.removeFromWishlist);
+  .put(UserCtrl.removeFromWishlist)
+  .get(UserCtrl.getWishlist);
 
 //cart
 router.route("/cart/:_id").post(UserCtrl.addToCart);

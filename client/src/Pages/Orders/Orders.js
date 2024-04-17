@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navigation from "../../Components/Navigation";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -14,22 +14,35 @@ import Confirmation from "../../Components/Confirmation";
 import OrderEdit from "../../Components/EditModal";
 import Dropdown from "react-dropdown";
 import "react-dropdown/style.css";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
-}
+const options = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
-const rows = [
-  createData("Frozen yoghurt", 159, 6.0, 24, 4.0),
-  createData("Ice cream sandwich", 237, 9.0, 37, 4.3),
-  createData("Eclair", 262, 16.0, 24, 6.0),
-  createData("Cupcake", 305, 3.7, 67, 4.3),
-  createData("Gingerbread", 356, 16.0, 49, 3.9),
-];
+const dateFormat = (isoDateString) => {
+  const date = new Date(isoDateString);
+  const formattedDate =
+    date.getFullYear() +
+    "/" +
+    (date.getMonth() + 1).toString().padStart(2, "0") +
+    "/" +
+    date.getDate().toString().padStart(2, "0");
 
-const options = ["PENDING", "PROCESSING", "CANCELED", "DELIVERED"];
+  return formattedDate;
+};
 
 export default function Orders() {
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/v1/orders")
+      .then((res) => {
+        setOrders(res.data);
+      })
+      .catch((er) => {});
+  }, []);
+
   const breadcrumb = [
     <div className="text-[14px] font-semibold text-white">
       <a href="/order-manager">Order manager</a>
@@ -38,10 +51,41 @@ export default function Orders() {
   ];
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState();
+  const [selectedID, setSelectedID] = useState("");
 
   const handleDelete = () => {
     setOpen(false);
-    //TODO
+
+    axios
+      .delete("http://localhost:5000/api/v1/orders/" + selectedID)
+      .then((res) => {
+        toast("Order deleted", { type: "success" });
+      })
+      .catch((er) => {
+        toast("Unable to delete order", { type: "error" });
+      });
+
+    setSelectedID("");
+  };
+
+  const updateStatus = (status, id) => {
+    setOpen(false);
+    console.log(options.indexOf(currentStatus), options.indexOf(status));
+    // if (options.indexOf(currentStatus) > options.indexOf(status)) {
+    //   return toast("Can't select this status", { type: "error" });
+    // }
+
+    axios
+      .put("http://localhost:5000/api/v1/orders/" + id, {
+        status,
+      })
+      .then((res) => {
+        toast("Status updated", { type: "success" });
+      })
+      .catch((er) => {
+        toast("Unable to update status", { type: "error" });
+      });
   };
 
   return (
@@ -88,40 +132,43 @@ export default function Orders() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {rows.map((row) => (
+                  {orders?.map((row, index) => (
                     <TableRow
-                      key={row.name}
+                      key={index}
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell
                         component="th"
                         scope="row"
-                        sx={{ fontWeight: 900 }}
+                        sx={{ fontWeight: 900, fontSize: "12px" }}
                       >
-                        {row.name}
+                        {row?._id}
                       </TableCell>
-                      <TableCell align="left">{row.calories}</TableCell>
-                      <TableCell align="left">{row.fat}</TableCell>
+                      <TableCell align="left">{row?.customer?.name}</TableCell>
+                      <TableCell align="left">
+                        {dateFormat(row?.createdAt)}
+                      </TableCell>
                       <TableCell align="left" sx={{ color: "red" }}>
                         <Dropdown
                           options={options}
+                          value={row?.status}
                           onChange={(val) => {
-                            console.log(val.value); //TODO
+                            let val1 = row?.status;
+                            setCurrentStatus(val1);
+                            updateStatus(val.value, row?._id);
                           }}
-                          value={options[0]}
                           disabled={false}
                           placeholder="Select an option"
-                          className="border-0 border-none text-red"
-                          controlClassName="border-none rounded-md text-red-600 bg-[#FBDBDA] font-semibold text-[13px]"
-                          menuClassName="text-[13px] font-semibold"
+                          className="border-0 border-none text-red z-50"
+                          controlClassName="border-none rounded-md text-red-600 z-50 bg-[#FBDBDA] font-semibold text-[13px]"
+                          menuClassName="text-[13px] z-50 font-semibold"
                           placeholderClassName=" text-red"
-                          
                         />
                       </TableCell>
-                      <TableCell align="right">{row.protein}</TableCell>
+                      <TableCell align="right">${row?.totalPrice}</TableCell>
                       <TableCell align="right">
                         <div className="flex flex-row space-x-3 justify-end items-center">
-                          <IconButton
+                          {/* <IconButton
                             onClick={() => setEditOpen(true)}
                             sx={{
                               bgcolor: "#333",
@@ -130,9 +177,12 @@ export default function Orders() {
                             }}
                           >
                             <EditIcon />
-                          </IconButton>
+                          </IconButton> */}
                           <IconButton
-                            onClick={() => setOpen(true)}
+                            onClick={() => {
+                              setOpen(true);
+                              setSelectedID(row?._id);
+                            }}
                             sx={{
                               bgcolor: "#AA4A44",
                               color: "#fff",
@@ -145,6 +195,11 @@ export default function Orders() {
                       </TableCell>
                     </TableRow>
                   ))}
+                  {orders.length === 0 && (
+                    <div className="text-center font-semibold text-red-500 py-4">
+                      No data to display
+                    </div>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

@@ -1,13 +1,67 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Navigation from "../../Components/Navigation";
 import Grid from "@mui/material/Unstable_Grid2";
 import CloseIcon from "@mui/icons-material/Close";
 import { IconButton } from "@mui/material";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function Wishlist() {
+  const [wishlist, setWishlist] = useState([]);
+
+  useEffect(() => {}, [
+    axios
+      .get(
+        "http://localhost:5000/api/v1/users/wishlist/661e9faf3fcc59738027c8ac"
+      )
+      .then((res) => {
+        setWishlist(res.data);
+      })
+      .catch((er) => {
+        console.log(er);
+        toast("Unable to fetch data", { type: "error" });
+      }),
+  ]);
+
   const breadcrumb = [
     <div className="text-[14px] font-semibold text-white">Wishlist</div>,
   ];
+
+  const addToCart = (prodID) => {
+    axios
+      .post(
+        "http://localhost:5000/api/v1/users/cart/661e9faf3fcc59738027c8ac",
+        { productID: prodID, quantity: 1 }
+      )
+      .then((res) => {
+        toast("Added to cart", { type: "success" });
+      })
+      .catch((er) => {
+        toast("Unable to add to cart", { type: "error" });
+      });
+  };
+
+  const removeFromWishlist = (prodID) => {
+    axios
+      .put(
+        "http://localhost:5000/api/v1/users/wishlist/661e9faf3fcc59738027c8ac",
+        { productID: prodID }
+      )
+      .then((res) => {
+        toast("Removed from wishlist", { type: "success" });
+        setWishlist((pre) => {
+          let array = [...pre];
+          return array.map((item) => {
+            if (item?._id != prodID) {
+              return item;
+            }
+          });
+        });
+      })
+      .catch((er) => {
+        toast("Unable to add to cart", { type: "error" });
+      });
+  };
   return (
     <div>
       {/* navigation section */}
@@ -35,30 +89,32 @@ export default function Wishlist() {
               </div>
             </Grid>
             {/* items */}
-            {[1, 2, 3, 4].map((item, index) => {
+            {wishlist.length == 0 && (
+              <div className="text-center py-3 flex-1 flex-row flex items-center text-red-500 font-semibold">
+                Wishlist is empty
+              </div>
+            )}
+            {wishlist?.map((item, index) => {
               return (
                 <>
-                  <Grid item md={4}>
+                  <Grid key={index} item md={4}>
                     <div className="flex-1 flex flex-row items-center justify-start space-x-4">
-                      <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Oranges_-_whole-halved-segment.jpg/1200px-Oranges_-_whole-halved-segment.jpg"
-                        className="w-20 h-20 shadow-md"
-                      />
-                      <div className="text-md font-semibold ">Orange</div>
+                      <img src={item?.image} className="w-20 h-20 shadow-md" />
+                      <div className="text-md font-semibold ">{item?.name}</div>
                     </div>
                   </Grid>
                   <Grid item md={4}>
                     <div className="flex-1 text-[14px] font-semibold flex flex-row items-center justify-start h-full">
-                      $12.99
+                      {item?.price * ((100 - item?.offer) / 100)}$
                       <div className="textsttext-decoration-line: line-through text-gray-500 pl-2 text-[12px]">
-                        {item?.oldPrice ?? item?.oldPrice}
+                        {item?.offer != 0 ?? item?.price}
                       </div>
                     </div>
                   </Grid>
                   <Grid item md={4}>
                     <div className="h-full flex-1 flex flex-row items-center justify-start">
                       <div className="flex">
-                        {item?.available ? (
+                        {item?.isAvailable ? (
                           <div className="bg-[#CFD3B6]  rounded-full px-3 py-1 border border-[#20B526] text-[#20B526] text-[13px] font-semibold">
                             In Stock
                           </div>
@@ -69,14 +125,18 @@ export default function Wishlist() {
                         )}
                       </div>
                       <div className="flex-1" />
-                      <div className="flex flex-row items-center justify-center">
+                      <div className="flex flex-row items-center justify-center ">
                         <button
-                          disabled={!item?.available}
-                          className={`rounded-full py-1 px-3 mr-2   font-semibold text-[13px] ${item?.available} ?text-white : text-black ${item?.available} ?bg-[#AA2926] : bg-[#fff] `}
+                          onClick={() => addToCart(item?._id)}
+                          disabled={!item?.isAvailable}
+                          className={`rounded-full py-1 px-3 mr-2 cursor-pointer   font-semibold text-[13px] ${item?.available} ?text-white : text-black ${item?.available} ?bg-[#AA2926] : bg-[#fff] `}
                         >
                           Add To cart
                         </button>
-                        <IconButton size="small">
+                        <IconButton
+                          onClick={() => removeFromWishlist(item?._id)}
+                          size="small"
+                        >
                           <CloseIcon />
                         </IconButton>
                       </div>

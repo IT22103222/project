@@ -37,6 +37,7 @@ export default function DropMenu(props) {
         {props.values.map((item, index) => {
           return (
             <MenuItem
+            key={index}
               onClick={() => {
                 handleClose();
                 props.setValue(item);
